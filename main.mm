@@ -6,6 +6,21 @@ bool isNoRecoilEnabled = false;
 bool isSpeedEnabled = false;
 bool isEspEnabled = false;
 
+// Custom View ដើម្បីឱ្យ Touch ทะลุຜ່ານទៅហ្គេមខាងក្រោមពេលចុចក្រៅ Menu
+@interface PassthroughView : UIView
+@end
+
+@implementation PassthroughView
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
+    UIView *hitView = [super hitTest:point withEvent:event];
+    // ប្រសិនបើប៉ះចំផ្ទៃខាងក្រោយទទេ (background) គឺមិនចាប់យកទេ (return nil) เพื่อให้ហ្គេមខាងក្រោមស៊ីការចុចវិញ
+    if (hitView == self) {
+        return nil;
+    }
+    return hitView;
+}
+@end
+
 @interface ModMenuViewController : UIViewController
 @property (nonatomic, strong) UIView *menuView;
 @property (nonatomic, strong) UIButton *floatingBtn;
@@ -13,9 +28,14 @@ bool isEspEnabled = false;
 
 @implementation ModMenuViewController
 
+- (void)loadView {
+    // ប្រើប្រាស់ PassthroughView ជា View หลัก
+    self.view = [[PassthroughView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    self.view.backgroundColor = [UIColor clearColor];
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.view.backgroundColor = [UIColor clearColor];
     
     // ១. ផ្ទាំង Menu ធំ (Floating Panel)
     self.menuView = [[UIView alloc] initWithFrame:CGRectMake(40, 60, 340, 260)];
@@ -63,7 +83,7 @@ bool isEspEnabled = false;
     [sw3 setOn:isEspEnabled];
     [sw3 addTarget:self action:@selector(toggleEsp:) forControlEvents:UIControlEventValueChanged];
     
-    // ប៊ូតុង Minimize / Close (លាក់ Menu ធំ ទុកប៊ូតុងតូច)
+    // ប៊ូតុង Minimize / Close
     UIButton *minimizeBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     minimizeBtn.frame = CGRectMake(90, 210, 160, 35);
     [minimizeBtn setTitle:@"MINIMIZE / CLOSE" forState:UIControlStateNormal];
@@ -77,7 +97,7 @@ bool isEspEnabled = false;
     [self.menuView addSubview:lbl3]; [self.menuView addSubview:sw3];
     [self.menuView addSubview:minimizeBtn];
     
-    // ២. ប៊ូតុងអណ្តែតតូច (Floating Button) សម្រាប់ចុចបើក Menu វិញ
+    // ២. ប៊ូតុងអណ្តែតតូច (Floating Button)
     self.floatingBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     self.floatingBtn.frame = CGRectMake(20, 120, 50, 50);
     self.floatingBtn.backgroundColor = [UIColor systemPinkColor];
@@ -90,9 +110,9 @@ bool isEspEnabled = false;
     self.floatingBtn.layer.shadowOpacity = 0.6f;
     self.floatingBtn.layer.shadowRadius = 4.0f;
     [self.floatingBtn addTarget:self action:@selector(openMenu) forControlEvents:UIControlEventTouchUpInside];
-    self.floatingBtn.hidden = YES; // ដំបូងបង្ហាញ Menu ធំ ដូច្នេះលាក់ប៊ូតុងតូចសិន
+    self.floatingBtn.hidden = YES;
     
-    // ដាក់ឱ្យប៊ូតុងតូចអាចអូសទាញ (Drag) ទៅមកលើអេក្រង់បាន
+    // បញ្ចូល PanGesture ឱ្យប៊ូតុងតូចអាចអូសទាញបាន
     UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)];
     [self.floatingBtn addGestureRecognizer:pan];
     
@@ -104,19 +124,16 @@ bool isEspEnabled = false;
 - (void)toggleSpeed:(UISwitch *)sender { isSpeedEnabled = sender.isOn; }
 - (void)toggleEsp:(UISwitch *)sender { isEspEnabled = sender.isOn; }
 
-// លាក់ Menu ធំ បង្ហាញប៊ូតុងតូច
 - (void)minimizeMenu {
     self.menuView.hidden = YES;
     self.floatingBtn.hidden = NO;
 }
 
-// បង្ហាញ Menu ធំ លាក់ប៊ូតុងតូចវិញ
 - (void)openMenu {
     self.menuView.hidden = NO;
     self.floatingBtn.hidden = YES;
 }
 
-// មុខងារអូសប៊ូតុងតូចទៅមកលើអេក្រង់ហ្គេម
 - (void)handlePan:(UIPanGestureRecognizer *)gesture {
     CGPoint translation = [gesture translationInView:self.view];
     CGPoint center = gesture.view.center;
@@ -126,7 +143,6 @@ bool isEspEnabled = false;
 
 @end
 
-// បង្កើត Window ដាច់ដោយឡែកសម្រាប់ Menu
 UIWindow *modWindow = nil;
 
 void ShowFloatingMenu() {
@@ -147,7 +163,6 @@ void ShowFloatingMenu() {
     });
 }
 
-// មុខងាររត់ស្វ័យប្រវត្តិពេល Load dylib ចូលហ្គេម
 __attribute__((constructor)) void initializer() {
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(4.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         ShowFloatingMenu();
