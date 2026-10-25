@@ -8,14 +8,16 @@ bool isEspEnabled = false;
 
 @interface ModMenuViewController : UIViewController
 @property (nonatomic, strong) UIView *menuView;
+@property (nonatomic, strong) UIButton *floatingBtn;
 @end
 
 @implementation ModMenuViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.view.backgroundColor = [UIColor clearColor];
     
-    // ផ្ទាំង Menu ធំ (Floating Panel)
+    // ១. ផ្ទាំង Menu ធំ (Floating Panel)
     self.menuView = [[UIView alloc] initWithFrame:CGRectMake(40, 60, 340, 260)];
     self.menuView.backgroundColor = [UIColor colorWithRed:0.10 green:0.10 blue:0.14 alpha:0.95];
     self.menuView.layer.cornerRadius = 14.0f;
@@ -23,7 +25,7 @@ bool isEspEnabled = false;
     self.menuView.layer.borderWidth = 2.5f;
     self.menuView.clipsToBounds = YES;
     
-    // ផ្លាកចំណងជើង (Title)
+    // ចងជើង (Title)
     UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 12, 320, 30)];
     titleLabel.text = @"🔥 ROSKIRA VIP MOD 🔥";
     titleLabel.textColor = [UIColor whiteColor];
@@ -51,7 +53,7 @@ bool isEspEnabled = false;
     [sw2 setOn:isSpeedEnabled];
     [sw2 addTarget:self action:@selector(toggleSpeed:) forControlEvents:UIControlEventValueChanged];
     
-    // --- មុខងារទី ៣៖ ESP BOX ---
+    // --- មុខងារទី ៣៖ ESP PLAYER ---
     UILabel *lbl3 = [[UILabel alloc] initWithFrame:CGRectMake(20, 160, 200, 30)];
     lbl3.text = @"ESP PLAYER";
     lbl3.textColor = [UIColor whiteColor];
@@ -61,30 +63,65 @@ bool isEspEnabled = false;
     [sw3 setOn:isEspEnabled];
     [sw3 addTarget:self action:@selector(toggleEsp:) forControlEvents:UIControlEventValueChanged];
     
-    // ប៊ូតុងបិទផ្ទាំង (Close Button)
-    UIButton *closeBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-    closeBtn.frame = CGRectMake(90, 210, 160, 35);
-    [closeBtn setTitle:@"MINIMIZE / CLOSE" forState:UIControlStateNormal];
-    [closeBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    closeBtn.backgroundColor = [UIColor systemRedColor];
-    closeBtn.layer.cornerRadius = 8.0f;
-    [closeBtn addTarget:self action:@selector(closeMenu) forControlEvents:UIControlEventTouchUpInside];
+    // ប៊ូតុង Minimize / Close (លាក់ Menu ធំ ទុកប៊ូតុងតូច)
+    UIButton *minimizeBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+    minimizeBtn.frame = CGRectMake(90, 210, 160, 35);
+    [minimizeBtn setTitle:@"MINIMIZE / CLOSE" forState:UIControlStateNormal];
+    [minimizeBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    minimizeBtn.backgroundColor = [UIColor systemRedColor];
+    minimizeBtn.layer.cornerRadius = 8.0f;
+    [minimizeBtn addTarget:self action:@selector(minimizeMenu) forControlEvents:UIControlEventTouchUpInside];
     
-    // បញ្ចូលបنگیComponents ទាំងអស់ចូល View
     [self.menuView addSubview:lbl1]; [self.menuView addSubview:sw1];
     [self.menuView addSubview:lbl2]; [self.menuView addSubview:sw2];
     [self.menuView addSubview:lbl3]; [self.menuView addSubview:sw3];
-    [self.menuView addSubview:closeBtn];
+    [self.menuView addSubview:minimizeBtn];
+    
+    // ២. ប៊ូតុងអណ្តែតតូច (Floating Button) សម្រាប់ចុចបើក Menu វិញ
+    self.floatingBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.floatingBtn.frame = CGRectMake(20, 120, 50, 50);
+    self.floatingBtn.backgroundColor = [UIColor systemPinkColor];
+    [self.floatingBtn setTitle:@"ROS" forState:UIControlStateNormal];
+    [self.floatingBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    self.floatingBtn.titleLabel.font = [UIFont boldSystemFontOfSize:13];
+    self.floatingBtn.layer.cornerRadius = 25.0f;
+    self.floatingBtn.layer.shadowColor = [UIColor blackColor].CGColor;
+    self.floatingBtn.layer.shadowOffset = CGSizeMake(0, 2);
+    self.floatingBtn.layer.shadowOpacity = 0.6f;
+    self.floatingBtn.layer.shadowRadius = 4.0f;
+    [self.floatingBtn addTarget:self action:@selector(openMenu) forControlEvents:UIControlEventTouchUpInside];
+    self.floatingBtn.hidden = YES; // ដំបូងបង្ហាញ Menu ធំ ដូច្នេះលាក់ប៊ូតុងតូចសិន
+    
+    // ដាក់ឱ្យប៊ូតុងតូចអាចអូសទាញ (Drag) ទៅមកលើអេក្រង់បាន
+    UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)];
+    [self.floatingBtn addGestureRecognizer:pan];
     
     [self.view addSubview:self.menuView];
+    [self.view addSubview:self.floatingBtn];
 }
 
 - (void)toggleNoRecoil:(UISwitch *)sender { isNoRecoilEnabled = sender.isOn; }
 - (void)toggleSpeed:(UISwitch *)sender { isSpeedEnabled = sender.isOn; }
 - (void)toggleEsp:(UISwitch *)sender { isEspEnabled = sender.isOn; }
 
-- (void)closeMenu {
-    self.view.window.hidden = YES;
+// លាក់ Menu ធំ បង្ហាញប៊ូតុងតូច
+- (void)minimizeMenu {
+    self.menuView.hidden = YES;
+    self.floatingBtn.hidden = NO;
+}
+
+// បង្ហាញ Menu ធំ លាក់ប៊ូតុងតូចវិញ
+- (void)openMenu {
+    self.menuView.hidden = NO;
+    self.floatingBtn.hidden = YES;
+}
+
+// មុខងារអូសប៊ូតុងតូចទៅមកលើអេក្រង់ហ្គេម
+- (void)handlePan:(UIPanGestureRecognizer *)gesture {
+    CGPoint translation = [gesture translationInView:self.view];
+    CGPoint center = gesture.view.center;
+    gesture.view.center = CGPointMake(center.x + translation.x, center.y + translation.y);
+    [gesture setTranslation:CGPointZero inView:self.view];
 }
 
 @end
@@ -103,6 +140,7 @@ void ShowFloatingMenu() {
             }
             modWindow.windowLevel = UIWindowLevelAlert + 1;
             modWindow.rootViewController = [[ModMenuViewController alloc] init];
+            modWindow.backgroundColor = [UIColor clearColor];
         }
         modWindow.hidden = NO;
         [modWindow makeKeyAndVisible];
