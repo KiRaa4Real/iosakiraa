@@ -134,13 +134,13 @@ bool isNoRecoilEnabled = false;
 - (void)toggleNearbyBuff:(UISwitch *)sender {
     isNearbyBuffEnabled = sender.isOn;
     if (isNearbyBuffEnabled) {
-        Nearby = 20.0; // កែជា 5.0, 10.0 ឬ 20.0 តាមតម្រូវការ
+        Nearby = 20.0; // បងអាចកែជា 5.0, 10.0 ឬ 20.0 តាមតម្រូវការ
     } else {
         Nearby = 1.1;
     }
 }
 
-// 🟢 No Recoil 100 Action (ភ្ជាប់តម្លៃតាម Step របស់បង)
+// 🟢 No Recoil 100 Action
 - (void)toggleNoRecoil:(UISwitch *)sender {
     isNoRecoilEnabled = sender.isOn;
     uint64_t slide = _dyld_get_image_vmaddr_slide(0);
@@ -149,9 +149,9 @@ bool isNoRecoilEnabled = false;
             double numVal = noRecoilNum;       // -10.0
             double nbF64  = noRecoilNearbyF64; // 1000.0
             float nbF32   = noRecoilNearbyF32; // 1.875
-            float target  = noRecoilTarget;    // 0.0 (Edit 1.875 to 0)
+            float target  = noRecoilTarget;    // 0.0
             
-            // ទីនេះបងអាចយក Address មកបូកជាមួយ NO_RECOIL_OFFSET (0x100) ដើម្បីសរសេរតម្លៃ target ចូល Memory
+            // កូដសរសេរចូល Memory តាម NO_RECOIL_OFFSET (0x100) ត្រង់នេះ
         } else {
             // ពេលបិទ ដាក់តម្លៃដើមវិញ
         }
@@ -184,11 +184,16 @@ void ShowFloatingMenu() {
         if (!modWindow) {
             UIWindowScene *scene = (UIWindowScene *)[[[UIApplication sharedApplication] connectedScenes] allObjects].firstObject;
             ModMenuViewController *vc = [[ModMenuViewController alloc] init];
+            
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
             if (scene) {
                 modWindow = [[ModMenuWindow alloc] initWithWindowScene:scene];
             } else {
                 modWindow = [[ModMenuWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
             }
+#pragma clang diagnostic pop
+
             modWindow.menuVC = vc;
             modWindow.windowLevel = UIWindowLevelAlert + 1;
             modWindow.rootViewController = vc;
