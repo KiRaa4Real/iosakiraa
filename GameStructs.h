@@ -35,10 +35,10 @@ public:
 class Entity
 {
 public:
-    __int32 type; //0x0000 
+    int32_t type; //0x0000 
     Meta* m_pMeta; //0x0004 
     void* m_pUnk; //0x0008 
-    __int32 m_ObjectId; //0x000C 
+   int32_t m_ObjectId; //0x000C 
 
     float m_Position[4]; //0x0010 
     char _0x0020[24];
