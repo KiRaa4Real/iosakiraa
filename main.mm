@@ -6,36 +6,38 @@ bool isNoRecoilEnabled = false;
 bool isSpeedEnabled = false;
 bool isEspEnabled = false;
 
-// Custom View ដើម្បីឱ្យ Touch ทะลุຜ່ານទៅហ្គេមខាងក្រោមពេលចុចក្រៅ Menu
-@interface PassthroughView : UIView
-@end
-
-@implementation PassthroughView
-- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
-    UIView *hitView = [super hitTest:point withEvent:event];
-    // ប្រសិនបើប៉ះចំផ្ទៃខាងក្រោយទទេ (background) គឺមិនចាប់យកទេ (return nil) เพื่อให้ហ្គេមខាងក្រោមស៊ីការចុចវិញ
-    if (hitView == self) {
-        return nil;
-    }
-    return hitView;
-}
-@end
+@class ModMenuWindow;
 
 @interface ModMenuViewController : UIViewController
 @property (nonatomic, strong) UIView *menuView;
 @property (nonatomic, strong) UIButton *floatingBtn;
 @end
 
-@implementation ModMenuViewController
+// Custom Window ជំនាន់ថ្មីសម្រាប់ Pass-through Touch ទៅហ្គេម ១០០%
+@interface ModMenuWindow : UIWindow
+@property (nonatomic, strong) ModMenuViewController *menuVC;
+@end
 
-- (void)loadView {
-    // ប្រើប្រាស់ PassthroughView ជា View หลัก
-    self.view = [[PassthroughView alloc] initWithFrame:[UIScreen mainScreen].bounds];
-    self.view.backgroundColor = [UIColor clearColor];
+@implementation ModMenuWindow
+- (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event {
+    // បើ Menu ធំកំពុងបើក ហើយចុចចំ Menu ➔ ចាប់យកការចុច
+    if (!self.menuVC.menuView.hidden && [self.menuVC.menuView pointInside:[self convertPoint:point toView:self.menuVC.menuView] withEvent:event]) {
+        return YES;
+    }
+    // បើប៊ូតុងតូច ROS កំពុងបង្ហាញ ហើយចុចចំវា ➔ ចាប់យកការចុច
+    if (!self.menuVC.floatingBtn.hidden && [self.menuVC.floatingBtn pointInside:[self convertPoint:point toView:self.menuVC.floatingBtn] withEvent:event]) {
+        return YES;
+    }
+    // ក្រៅពីហ្នឹង (កន្លែងទទេៗ) ➔ ឱ្យ Touch ធ្លាយឆ្លងកាត់ទៅហ្គេមខាងក្រោមធម្មតា!
+    return NO;
 }
+@end
+
+@implementation ModMenuViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.view.backgroundColor = [UIColor clearColor];
     
     // ១. ផ្ទាំង Menu ធំ (Floating Panel)
     self.menuView = [[UIView alloc] initWithFrame:CGRectMake(40, 60, 340, 260)];
@@ -134,7 +136,7 @@ bool isEspEnabled = false;
     self.floatingBtn.hidden = YES;
 }
 
-- (void)handlePan:(UIPanGestureRecognizer *)gesture {
+- (void)handlePan:(UIPanGestureRecognizer * _Nonnull)gesture {
     CGPoint translation = [gesture translationInView:self.view];
     CGPoint center = gesture.view.center;
     gesture.view.center = CGPointMake(center.x + translation.x, center.y + translation.y);
@@ -143,19 +145,21 @@ bool isEspEnabled = false;
 
 @end
 
-UIWindow *modWindow = nil;
+ModMenuWindow *modWindow = nil;
 
 void ShowFloatingMenu() {
     dispatch_async(dispatch_get_main_queue(), ^{
         if (!modWindow) {
             UIWindowScene *scene = (UIWindowScene *)[[[UIApplication sharedApplication] connectedScenes] allObjects].firstObject;
+            ModMenuViewController *vc = [[ModMenuViewController alloc] init];
             if (scene) {
-                modWindow = [[UIWindow alloc] initWithWindowScene:scene];
+                modWindow = [[ModMenuWindow alloc] initWithWindowScene:scene];
             } else {
-                modWindow = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+                modWindow = [[ModMenuWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
             }
+            modWindow.menuVC = vc;
             modWindow.windowLevel = UIWindowLevelAlert + 1;
-            modWindow.rootViewController = [[ModMenuViewController alloc] init];
+            modWindow.rootViewController = vc;
             modWindow.backgroundColor = [UIColor clearColor];
         }
         modWindow.hidden = NO;
