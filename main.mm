@@ -1,13 +1,11 @@
 #import <UIKit/UIKit.h>
 #import "GameStructs.h"
+#include <mach-o/dyld.h>
 
 // ស្ថានភាពមុខងារ (Toggle States)
-bool isNoRecoilEnabled = false;
-bool isSpeedEnabled = false;
-bool isEspEnabled = false;
-bool isAimbotEnabled = false;
 bool isSpeedBuffEnabled = false;
 bool isNearbyBuffEnabled = false;
+bool isNoRecoilEnabled = false;
 
 @class ModMenuWindow;
 
@@ -39,8 +37,8 @@ bool isNearbyBuffEnabled = false;
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor clearColor];
     
-    // ១. ផ្ទាំង Menu ធំ (Floating Panel) - កម្ពស់ 380 សម្រាប់ដាក់គ្រប់មុខងារ
-    self.menuView = [[UIView alloc] initWithFrame:CGRectMake(40, 60, 340, 380)];
+    // ១. ផ្ទាំង Menu ធំ (Floating Panel) - កម្ពស់ 270 សម្រាប់ ៣ មុខងារ
+    self.menuView = [[UIView alloc] initWithFrame:CGRectMake(40, 60, 340, 270)];
     self.menuView.backgroundColor = [UIColor colorWithRed:0.10 green:0.10 blue:0.14 alpha:0.95];
     self.menuView.layer.cornerRadius = 14.0f;
     self.menuView.layer.borderColor = [UIColor systemPinkColor].CGColor;
@@ -55,69 +53,39 @@ bool isNearbyBuffEnabled = false;
     titleLabel.font = [UIFont boldSystemFontOfSize:16];
     [self.menuView addSubview:titleLabel];
     
-    // --- មុខងារទី ១៖ NO RECOIL ---
-    UILabel *lbl1 = [[UILabel alloc] initWithFrame:CGRectMake(20, 50, 200, 25)];
-    lbl1.text = @"NO RECOIL 100%";
-    lbl1.textColor = [UIColor whiteColor];
+    // --- មុខងារទី ១៖ SPEED BUFF ---
+    UILabel *lbl1 = [[UILabel alloc] initWithFrame:CGRectMake(20, 55, 200, 25)];
+    lbl1.text = @"SPEED BUFF";
+    lbl1.textColor = [UIColor yellowColor];
     lbl1.font = [UIFont systemFontOfSize:13 weight:UIFontWeightBold];
     
-    UISwitch *sw1 = [[UISwitch alloc] initWithFrame:CGRectMake(260, 50, 0, 0)];
-    [sw1 setOn:isNoRecoilEnabled];
-    [sw1 addTarget:self action:@selector(toggleNoRecoil:) forControlEvents:UIControlEventValueChanged];
-    
-    // --- មុខងារទី ២៖ SPEED HACK ---
-    UILabel *lbl2 = [[UILabel alloc] initWithFrame:CGRectMake(20, 90, 200, 25)];
-    lbl2.text = @"SPEED HACK";
-    lbl2.textColor = [UIColor whiteColor];
+    UISwitch *sw1 = [[UISwitch alloc] initWithFrame:CGRectMake(260, 55, 0, 0)];
+    [sw1 setOn:isSpeedBuffEnabled];
+    [sw1 addTarget:self action:@selector(toggleSpeedBuff:) forControlEvents:UIControlEventValueChanged];
+
+    // --- មុខងារទី ២៖ NEARBY BUFF ---
+    UILabel *lbl2 = [[UILabel alloc] initWithFrame:CGRectMake(20, 95, 200, 25)];
+    lbl2.text = @"NEARBY BUFF";
+    lbl2.textColor = [UIColor cyanColor];
     lbl2.font = [UIFont systemFontOfSize:13 weight:UIFontWeightBold];
     
-    UISwitch *sw2 = [[UISwitch alloc] initWithFrame:CGRectMake(260, 90, 0, 0)];
-    [sw2 setOn:isSpeedEnabled];
-    [sw2 addTarget:self action:@selector(toggleSpeed:) forControlEvents:UIControlEventValueChanged];
-    
-    // --- មុខងារទី ៣៖ ESP PLAYER ---
-    UILabel *lbl3 = [[UILabel alloc] initWithFrame:CGRectMake(20, 130, 200, 25)];
-    lbl3.text = @"ESP PLAYER";
-    lbl3.textColor = [UIColor whiteColor];
+    UISwitch *sw2 = [[UISwitch alloc] initWithFrame:CGRectMake(260, 95, 0, 0)];
+    [sw2 setOn:isNearbyBuffEnabled];
+    [sw2 addTarget:self action:@selector(toggleNearbyBuff:) forControlEvents:UIControlEventValueChanged];
+
+    // --- មុខងារទី ៣៖ NO RECOIL 100 ---
+    UILabel *lbl3 = [[UILabel alloc] initWithFrame:CGRectMake(20, 135, 200, 25)];
+    lbl3.text = @"NO RECOIL 100";
+    lbl3.textColor = [UIColor greenColor];
     lbl3.font = [UIFont systemFontOfSize:13 weight:UIFontWeightBold];
     
-    UISwitch *sw3 = [[UISwitch alloc] initWithFrame:CGRectMake(260, 130, 0, 0)];
-    [sw3 setOn:isEspEnabled];
-    [sw3 addTarget:self action:@selector(toggleEsp:) forControlEvents:UIControlEventValueChanged];
-    
-    // --- មុខងារទី ៤៖ AIMBOT ---
-    UILabel *lbl4 = [[UILabel alloc] initWithFrame:CGRectMake(20, 170, 200, 25)];
-    lbl4.text = @"AIMBOT 360";
-    lbl4.textColor = [UIColor whiteColor];
-    lbl4.font = [UIFont systemFontOfSize:13 weight:UIFontWeightBold];
-    
-    UISwitch *sw4 = [[UISwitch alloc] initWithFrame:CGRectMake(260, 170, 0, 0)];
-    [sw4 setOn:isAimbotEnabled];
-    [sw4 addTarget:self action:@selector(toggleAimbot:) forControlEvents:UIControlEventValueChanged];
-    
-    // --- មុខងារទី ៥៖ SPEED BUFF (boostSpeedBuff) ---
-    UILabel *lbl5 = [[UILabel alloc] initWithFrame:CGRectMake(20, 210, 200, 25)];
-    lbl5.text = @"SPEED BUFF";
-    lbl5.textColor = [UIColor yellowColor];
-    lbl5.font = [UIFont systemFontOfSize:13 weight:UIFontWeightBold];
-    
-    UISwitch *sw5 = [[UISwitch alloc] initWithFrame:CGRectMake(260, 210, 0, 0)];
-    [sw5 setOn:isSpeedBuffEnabled];
-    [sw5 addTarget:self action:@selector(toggleSpeedBuff:) forControlEvents:UIControlEventValueChanged];
-
-    // --- មុខងារទី ៦៖ NEARBY BUFF (Nearby = 5/10/20) ---
-    UILabel *lbl6 = [[UILabel alloc] initWithFrame:CGRectMake(20, 250, 200, 25)];
-    lbl6.text = @"NEARBY BUFF";
-    lbl6.textColor = [UIColor cyanColor];
-    lbl6.font = [UIFont systemFontOfSize:13 weight:UIFontWeightBold];
-    
-    UISwitch *sw6 = [[UISwitch alloc] initWithFrame:CGRectMake(260, 250, 0, 0)];
-    [sw6 setOn:isNearbyBuffEnabled];
-    [sw6 addTarget:self action:@selector(toggleNearbyBuff:) forControlEvents:UIControlEventValueChanged];
+    UISwitch *sw3 = [[UISwitch alloc] initWithFrame:CGRectMake(260, 135, 0, 0)];
+    [sw3 setOn:isNoRecoilEnabled];
+    [sw3 addTarget:self action:@selector(toggleNoRecoil:) forControlEvents:UIControlEventValueChanged];
     
     // ប៊ូតុង Minimize / Close
     UIButton *minimizeBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-    minimizeBtn.frame = CGRectMake(90, 305, 160, 35);
+    minimizeBtn.frame = CGRectMake(90, 190, 160, 35);
     [minimizeBtn setTitle:@"MINIMIZE / CLOSE" forState:UIControlStateNormal];
     [minimizeBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     minimizeBtn.backgroundColor = [UIColor systemRedColor];
@@ -128,9 +96,6 @@ bool isNearbyBuffEnabled = false;
     [self.menuView addSubview:lbl1]; [self.menuView addSubview:sw1];
     [self.menuView addSubview:lbl2]; [self.menuView addSubview:sw2];
     [self.menuView addSubview:lbl3]; [self.menuView addSubview:sw3];
-    [self.menuView addSubview:lbl4]; [self.menuView addSubview:sw4];
-    [self.menuView addSubview:lbl5]; [self.menuView addSubview:sw5];
-    [self.menuView addSubview:lbl6]; [self.menuView addSubview:sw6];
     [self.menuView addSubview:minimizeBtn];
     
     // ២. ប៊ូតុងអណ្តែតតូច (Floating Button)
@@ -155,29 +120,41 @@ bool isNearbyBuffEnabled = false;
     [self.view addSubview:self.floatingBtn];
 }
 
-- (void)toggleNoRecoil:(UISwitch *)sender { isNoRecoilEnabled = sender.isOn; }
-- (void)toggleSpeed:(UISwitch *)sender { isSpeedEnabled = sender.isOn; }
-- (void)toggleEsp:(UISwitch *)sender { isEspEnabled = sender.isOn; }
-- (void)toggleAimbot:(UISwitch *)sender { isAimbotEnabled = sender.isOn; }
-
-// 🟢 Speed Buff Action (ហៅតម្លៃ boostSpeedBuff ពី GameStructs.h)
+// 🟢 Speed Buff Action
 - (void)toggleSpeedBuff:(UISwitch *)sender {
     isSpeedBuffEnabled = sender.isOn;
-    if (isSpeedBuffEnabled) {
-        double activeSpeedBuff = boostSpeedBuff; // 1.51709e+09
-        // ដាក់កូដសរសេរចូល Memory ហ្គេមទីនេះ
-    } else {
-        // តម្លៃដើមពេលបិទ
+    uint64_t slide = _dyld_get_image_vmaddr_slide(0);
+    if (slide > 0 && isSpeedBuffEnabled) {
+        double val = boostSpeedBuff; // 1.51709e+09
+        // កូដសរសេរចូល Memory ហ្គេមត្រង់នេះ
     }
 }
 
-// 🟢 Nearby Buff Action (ប្តូរតម្លៃ Nearby ពី 1.1 ទៅ 20 ឬ 5, 10)
+// 🟢 Nearby Buff Action
 - (void)toggleNearbyBuff:(UISwitch *)sender {
     isNearbyBuffEnabled = sender.isOn;
     if (isNearbyBuffEnabled) {
-        Nearby = 20.0; // បងអាចប្តូរជា 5.0, 10.0 ឬ 20.0 តាមតម្រូវការ
+        Nearby = 20.0; // កែជា 5.0, 10.0 ឬ 20.0 តាមតម្រូវការ
     } else {
-        Nearby = 1.1; // តម្លៃដើមវិញ
+        Nearby = 1.1;
+    }
+}
+
+// 🟢 No Recoil 100 Action (ភ្ជាប់តម្លៃតាម Step របស់បង)
+- (void)toggleNoRecoil:(UISwitch *)sender {
+    isNoRecoilEnabled = sender.isOn;
+    uint64_t slide = _dyld_get_image_vmaddr_slide(0);
+    if (slide > 0) {
+        if (isNoRecoilEnabled) {
+            double numVal = noRecoilNum;       // -10.0
+            double nbF64  = noRecoilNearbyF64; // 1000.0
+            float nbF32   = noRecoilNearbyF32; // 1.875
+            float target  = noRecoilTarget;    // 0.0 (Edit 1.875 to 0)
+            
+            // ទីនេះបងអាចយក Address មកបូកជាមួយ NO_RECOIL_OFFSET (0x100) ដើម្បីសរសេរតម្លៃ target ចូល Memory
+        } else {
+            // ពេលបិទ ដាក់តម្លៃដើមវិញ
+        }
     }
 }
 
