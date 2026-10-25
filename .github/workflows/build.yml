@@ -8,9 +8,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Compile to dylib with UIKit
+    - name: Compile to iOS dylib with UIKit
       run: |
-        clang++ -shared -fPIC -arch arm64 main.mm -o roskira.dylib -framework UIKit -framework Foundation
+        xcrun --sdk iphoneos clang++ -shared -fPIC -arch arm64 main.mm -o roskira.dylib -framework UIKit -framework Foundation -isysroot $(xcrun --sdk iphoneos --show-sdk-path)
         
     - name: Upload dylib Artifact
       uses: actions/upload-artifact@v4
