@@ -60,4 +60,37 @@ public:
 inline double boostSpeedBuff = 1.51709e+09;
 inline double Nearby = 1.1;
 
+#pragma once
+#include <stdint.h>
 
+// --- --- DEFINES & OFFSETS --- ---
+#define OFFSET_LOCALPLAYER 0x1ED77D4
+#define OFFSET_CLIENT 0x1ED7418
+
+// --- --- MOD VALUES --- ---
+inline double boostSpeedBuff = 1.51709e+09;
+inline double Nearby = 1.1;
+
+// --- --- NO RECOIL 100 CONFIG --- ---
+#define NO_RECOIL_OFFSET 0x100
+inline double noRecoilNum = -10.0;
+inline double noRecoilNearbyF64 = 1000.0;
+inline float noRecoilNearbyF32 = 1.875f;
+inline float noRecoilTarget = 0.0f; // Edit 1.875 to 0
+
+#pragma once
+#include <stdint.h>
+
+// --- --- DEFINES & OFFSETS --- ---
+#define OFFSET_LOCALPLAYER 0x1ED77D4
+#define OFFSET_CLIENT 0x1ED7418
+
+// --- --- MOD VALUES --- ---
+inline double boostSpeedBuff = 1.51709e+09;
+inline double Nearby = 1.1;
+
+// Aimlock Config Values (តាមក្បួន GG Step របស់បង)
+inline double aimlockVal1 = 1.0e299;
+inline double aimlockVal2 = 0.001;
+inline double aimlockVal3 = 1800.0;
+inline double aimlockVal4 = 999.0;
