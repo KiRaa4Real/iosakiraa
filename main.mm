@@ -1,10 +1,13 @@
 #import <UIKit/UIKit.h>
-#include "GameStructs.h"
+#import "GameStructs.h"
 
 // ស្ថានភាពមុខងារ (Toggle States)
 bool isNoRecoilEnabled = false;
 bool isSpeedEnabled = false;
 bool isEspEnabled = false;
+bool isAimbotEnabled = false;
+bool isSpeedBuffEnabled = false;
+bool isNearbyBuffEnabled = false;
 
 @class ModMenuWindow;
 
@@ -13,22 +16,19 @@ bool isEspEnabled = false;
 @property (nonatomic, strong) UIButton *floatingBtn;
 @end
 
-// Custom Window ជំនាន់ថ្មីសម្រាប់ Pass-through Touch ទៅហ្គេម ១០០%
+// Custom Window សម្រាប់ Pass-through Touch ទៅហ្គេម ១០០%
 @interface ModMenuWindow : UIWindow
 @property (nonatomic, strong) ModMenuViewController *menuVC;
 @end
 
 @implementation ModMenuWindow
 - (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event {
-    // បើ Menu ធំកំពុងបើក ហើយចុចចំ Menu ➔ ចាប់យកការចុច
     if (!self.menuVC.menuView.hidden && [self.menuVC.menuView pointInside:[self convertPoint:point toView:self.menuVC.menuView] withEvent:event]) {
         return YES;
     }
-    // បើប៊ូតុងតូច ROS កំពុងបង្ហាញ ហើយចុចចំវា ➔ ចាប់យកការចុច
     if (!self.menuVC.floatingBtn.hidden && [self.menuVC.floatingBtn pointInside:[self convertPoint:point toView:self.menuVC.floatingBtn] withEvent:event]) {
         return YES;
     }
-    // ក្រៅពីហ្នឹង (កន្លែងទទេៗ) ➔ ឱ្យ Touch ធ្លាយឆ្លងកាត់ទៅហ្គេមខាងក្រោមធម្មតា!
     return NO;
 }
 @end
@@ -39,8 +39,8 @@ bool isEspEnabled = false;
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor clearColor];
     
-    // ១. ផ្ទាំង Menu ធំ (Floating Panel)
-    self.menuView = [[UIView alloc] initWithFrame:CGRectMake(40, 60, 340, 260)];
+    // ១. ផ្ទាំង Menu ធំ (Floating Panel) - កម្ពស់ 380 សម្រាប់ដាក់គ្រប់មុខងារ
+    self.menuView = [[UIView alloc] initWithFrame:CGRectMake(40, 60, 340, 380)];
     self.menuView.backgroundColor = [UIColor colorWithRed:0.10 green:0.10 blue:0.14 alpha:0.95];
     self.menuView.layer.cornerRadius = 14.0f;
     self.menuView.layer.borderColor = [UIColor systemPinkColor].CGColor;
@@ -48,7 +48,7 @@ bool isEspEnabled = false;
     self.menuView.clipsToBounds = YES;
     
     // ចងជើង (Title)
-    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 12, 320, 30)];
+    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 10, 320, 30)];
     titleLabel.text = @"🔥 ROSKIRA VIP MOD 🔥";
     titleLabel.textColor = [UIColor whiteColor];
     titleLabel.textAlignment = NSTextAlignmentCenter;
@@ -56,47 +56,81 @@ bool isEspEnabled = false;
     [self.menuView addSubview:titleLabel];
     
     // --- មុខងារទី ១៖ NO RECOIL ---
-    UILabel *lbl1 = [[UILabel alloc] initWithFrame:CGRectMake(20, 60, 200, 30)];
+    UILabel *lbl1 = [[UILabel alloc] initWithFrame:CGRectMake(20, 50, 200, 25)];
     lbl1.text = @"NO RECOIL 100%";
     lbl1.textColor = [UIColor whiteColor];
-    lbl1.font = [UIFont systemFontOfSize:14 weight:UIFontWeightBold];
+    lbl1.font = [UIFont systemFontOfSize:13 weight:UIFontWeightBold];
     
-    UISwitch *sw1 = [[UISwitch alloc] initWithFrame:CGRectMake(260, 60, 0, 0)];
+    UISwitch *sw1 = [[UISwitch alloc] initWithFrame:CGRectMake(260, 50, 0, 0)];
     [sw1 setOn:isNoRecoilEnabled];
     [sw1 addTarget:self action:@selector(toggleNoRecoil:) forControlEvents:UIControlEventValueChanged];
     
     // --- មុខងារទី ២៖ SPEED HACK ---
-    UILabel *lbl2 = [[UILabel alloc] initWithFrame:CGRectMake(20, 110, 200, 30)];
+    UILabel *lbl2 = [[UILabel alloc] initWithFrame:CGRectMake(20, 90, 200, 25)];
     lbl2.text = @"SPEED HACK";
     lbl2.textColor = [UIColor whiteColor];
-    lbl2.font = [UIFont systemFontOfSize:14 weight:UIFontWeightBold];
+    lbl2.font = [UIFont systemFontOfSize:13 weight:UIFontWeightBold];
     
-    UISwitch *sw2 = [[UISwitch alloc] initWithFrame:CGRectMake(260, 110, 0, 0)];
+    UISwitch *sw2 = [[UISwitch alloc] initWithFrame:CGRectMake(260, 90, 0, 0)];
     [sw2 setOn:isSpeedEnabled];
     [sw2 addTarget:self action:@selector(toggleSpeed:) forControlEvents:UIControlEventValueChanged];
     
     // --- មុខងារទី ៣៖ ESP PLAYER ---
-    UILabel *lbl3 = [[UILabel alloc] initWithFrame:CGRectMake(20, 160, 200, 30)];
+    UILabel *lbl3 = [[UILabel alloc] initWithFrame:CGRectMake(20, 130, 200, 25)];
     lbl3.text = @"ESP PLAYER";
     lbl3.textColor = [UIColor whiteColor];
-    lbl3.font = [UIFont systemFontOfSize:14 weight:UIFontWeightBold];
+    lbl3.font = [UIFont systemFontOfSize:13 weight:UIFontWeightBold];
     
-    UISwitch *sw3 = [[UISwitch alloc] initWithFrame:CGRectMake(260, 160, 0, 0)];
+    UISwitch *sw3 = [[UISwitch alloc] initWithFrame:CGRectMake(260, 130, 0, 0)];
     [sw3 setOn:isEspEnabled];
     [sw3 addTarget:self action:@selector(toggleEsp:) forControlEvents:UIControlEventValueChanged];
     
+    // --- មុខងារទី ៤៖ AIMBOT ---
+    UILabel *lbl4 = [[UILabel alloc] initWithFrame:CGRectMake(20, 170, 200, 25)];
+    lbl4.text = @"AIMBOT 360";
+    lbl4.textColor = [UIColor whiteColor];
+    lbl4.font = [UIFont systemFontOfSize:13 weight:UIFontWeightBold];
+    
+    UISwitch *sw4 = [[UISwitch alloc] initWithFrame:CGRectMake(260, 170, 0, 0)];
+    [sw4 setOn:isAimbotEnabled];
+    [sw4 addTarget:self action:@selector(toggleAimbot:) forControlEvents:UIControlEventValueChanged];
+    
+    // --- មុខងារទី ៥៖ SPEED BUFF (boostSpeedBuff) ---
+    UILabel *lbl5 = [[UILabel alloc] initWithFrame:CGRectMake(20, 210, 200, 25)];
+    lbl5.text = @"SPEED BUFF";
+    lbl5.textColor = [UIColor yellowColor];
+    lbl5.font = [UIFont systemFontOfSize:13 weight:UIFontWeightBold];
+    
+    UISwitch *sw5 = [[UISwitch alloc] initWithFrame:CGRectMake(260, 210, 0, 0)];
+    [sw5 setOn:isSpeedBuffEnabled];
+    [sw5 addTarget:self action:@selector(toggleSpeedBuff:) forControlEvents:UIControlEventValueChanged];
+
+    // --- មុខងារទី ៦៖ NEARBY BUFF (Nearby = 5/10/20) ---
+    UILabel *lbl6 = [[UILabel alloc] initWithFrame:CGRectMake(20, 250, 200, 25)];
+    lbl6.text = @"NEARBY BUFF";
+    lbl6.textColor = [UIColor cyanColor];
+    lbl6.font = [UIFont systemFontOfSize:13 weight:UIFontWeightBold];
+    
+    UISwitch *sw6 = [[UISwitch alloc] initWithFrame:CGRectMake(260, 250, 0, 0)];
+    [sw6 setOn:isNearbyBuffEnabled];
+    [sw6 addTarget:self action:@selector(toggleNearbyBuff:) forControlEvents:UIControlEventValueChanged];
+    
     // ប៊ូតុង Minimize / Close
     UIButton *minimizeBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-    minimizeBtn.frame = CGRectMake(90, 210, 160, 35);
+    minimizeBtn.frame = CGRectMake(90, 305, 160, 35);
     [minimizeBtn setTitle:@"MINIMIZE / CLOSE" forState:UIControlStateNormal];
     [minimizeBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     minimizeBtn.backgroundColor = [UIColor systemRedColor];
     minimizeBtn.layer.cornerRadius = 8.0f;
     [minimizeBtn addTarget:self action:@selector(minimizeMenu) forControlEvents:UIControlEventTouchUpInside];
     
+    // បញ្ចូល Components ទាំងអស់ចូល Menu
     [self.menuView addSubview:lbl1]; [self.menuView addSubview:sw1];
     [self.menuView addSubview:lbl2]; [self.menuView addSubview:sw2];
     [self.menuView addSubview:lbl3]; [self.menuView addSubview:sw3];
+    [self.menuView addSubview:lbl4]; [self.menuView addSubview:sw4];
+    [self.menuView addSubview:lbl5]; [self.menuView addSubview:sw5];
+    [self.menuView addSubview:lbl6]; [self.menuView addSubview:sw6];
     [self.menuView addSubview:minimizeBtn];
     
     // ២. ប៊ូតុងអណ្តែតតូច (Floating Button)
@@ -114,7 +148,6 @@ bool isEspEnabled = false;
     [self.floatingBtn addTarget:self action:@selector(openMenu) forControlEvents:UIControlEventTouchUpInside];
     self.floatingBtn.hidden = YES;
     
-    // បញ្ចូល PanGesture ឱ្យប៊ូតុងតូចអាចអូសទាញបាន
     UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)];
     [self.floatingBtn addGestureRecognizer:pan];
     
@@ -125,6 +158,28 @@ bool isEspEnabled = false;
 - (void)toggleNoRecoil:(UISwitch *)sender { isNoRecoilEnabled = sender.isOn; }
 - (void)toggleSpeed:(UISwitch *)sender { isSpeedEnabled = sender.isOn; }
 - (void)toggleEsp:(UISwitch *)sender { isEspEnabled = sender.isOn; }
+- (void)toggleAimbot:(UISwitch *)sender { isAimbotEnabled = sender.isOn; }
+
+// 🟢 Speed Buff Action (ហៅតម្លៃ boostSpeedBuff ពី GameStructs.h)
+- (void)toggleSpeedBuff:(UISwitch *)sender {
+    isSpeedBuffEnabled = sender.isOn;
+    if (isSpeedBuffEnabled) {
+        double activeSpeedBuff = boostSpeedBuff; // 1.51709e+09
+        // ដាក់កូដសរសេរចូល Memory ហ្គេមទីនេះ
+    } else {
+        // តម្លៃដើមពេលបិទ
+    }
+}
+
+// 🟢 Nearby Buff Action (ប្តូរតម្លៃ Nearby ពី 1.1 ទៅ 20 ឬ 5, 10)
+- (void)toggleNearbyBuff:(UISwitch *)sender {
+    isNearbyBuffEnabled = sender.isOn;
+    if (isNearbyBuffEnabled) {
+        Nearby = 20.0; // បងអាចប្តូរជា 5.0, 10.0 ឬ 20.0 តាមតម្រូវការ
+    } else {
+        Nearby = 1.1; // តម្លៃដើមវិញ
+    }
+}
 
 - (void)minimizeMenu {
     self.menuView.hidden = YES;
